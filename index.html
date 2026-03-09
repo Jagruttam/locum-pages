@@ -36,7 +36,7 @@
   }
 
   /* === LAYOUT === */
-  .app { display: flex; min-height: 100vh; }
+  .app { display: flex; min-height: 100vh; overflow-x: hidden; }
 
   .sidebar {
     width: 260px;
@@ -825,28 +825,73 @@
   .mobile-topbar {
     display: none;
     background: var(--slate);
-    padding: 12px 16px;
+    padding: 0 16px;
+    height: 56px;
     align-items: center;
     justify-content: space-between;
     position: sticky;
     top: 0;
     z-index: 90;
+    flex-shrink: 0;
   }
 
   .mobile-logo {
     display: flex; align-items: center; gap: 8px;
-    color: white; font-size: 16px; font-weight: 700;
+    color: white; font-size: 17px; font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .mobile-logo .logo-icon-sm {
+    width: 30px; height: 30px;
+    background: var(--teal);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
   }
 
   .mobile-logo span { color: var(--teal-light); }
 
   .hamburger {
-    width: 36px; height: 36px;
+    width: 38px; height: 38px;
     background: rgba(255,255,255,0.1);
-    border: none; border-radius: 8px;
+    border: none; border-radius: 10px;
     color: white; font-size: 18px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Role switcher pill — sits below topbar on mobile */
+  .mobile-role-bar {
+    display: none;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    gap: 8px;
+    position: sticky;
+    top: 56px;
+    z-index: 89;
+  }
+
+  .mobile-role-bar .role-pill {
+    flex: 1;
+    padding: 8px 6px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: white;
+    color: var(--muted);
+    font-family: 'Sora', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .mobile-role-bar .role-pill.active {
+    background: var(--teal-faint);
+    border-color: var(--teal);
+    color: var(--teal-dark);
   }
 
   .bottom-nav {
@@ -854,9 +899,10 @@
     position: fixed;
     bottom: 0; left: 0; right: 0;
     background: white;
-    border-top: 1px solid var(--border);
+    border-top: 1.5px solid var(--border);
     z-index: 100;
-    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.07);
   }
 
   .bottom-nav-inner {
@@ -866,46 +912,59 @@
   }
 
   .bnav-item {
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
-    padding: 4px 12px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 4px 8px;
     cursor: pointer;
     color: var(--muted);
     font-size: 10px; font-weight: 500;
     border-radius: 8px;
     transition: all 0.2s;
-    min-width: 56px;
+    min-width: 52px;
     border: none; background: none;
+    font-family: 'Sora', sans-serif;
   }
 
-  .bnav-item .bnav-icon { font-size: 20px; }
+  .bnav-item .bnav-icon { font-size: 22px; line-height: 1; }
   .bnav-item.active { color: var(--teal); }
-  .bnav-item.active .bnav-icon { transform: scale(1.1); }
+  .bnav-item.active .bnav-icon { filter: none; }
 
   /* Slide-over menu for mobile */
   .sidebar-overlay {
     display: none;
     position: fixed; inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.55);
     z-index: 98;
+    backdrop-filter: blur(2px);
   }
 
   .sidebar-overlay.open { display: block; }
 
   /* === RESPONSIVE BREAKPOINTS === */
   @media (max-width: 768px) {
-    /* Hide desktop sidebar */
+    /* App must stack vertically on mobile */
+    .app {
+      flex-direction: column;
+    }
+
+    /* HIDE sidebar completely on mobile by default */
     .sidebar {
-      transform: translateX(-100%);
-      z-index: 99;
+      display: none;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 999;
       width: 280px;
+      transform: none;
     }
 
+    /* Show sidebar when hamburger opens it */
     .sidebar.open {
-      transform: translateX(0);
+      display: flex;
+      box-shadow: 4px 0 32px rgba(0,0,0,0.3);
     }
 
-    /* Show mobile topbar */
+    /* Show mobile topbar & role bar */
     .mobile-topbar { display: flex; }
+    .mobile-role-bar { display: flex; }
 
     /* Hide desktop topbar */
     .topbar { display: none; }
@@ -913,141 +972,115 @@
     /* Show bottom nav */
     .bottom-nav { display: block; }
 
-    /* Main content full width */
-    .main { margin-left: 0; padding-bottom: 70px; }
+    /* CRITICAL: remove left margin, full width */
+    .main {
+      margin-left: 0;
+      width: 100%;
+      min-width: 0;
+      padding-bottom: 72px;
+    }
 
-    .content { padding: 16px; }
+    /* Tighter content padding */
+    .content { padding: 14px 14px 20px; }
 
-    /* Stats grid: 2 cols on mobile */
+    /* ── Stats: 2×2 grid ── */
     .stats-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
+      margin-bottom: 16px;
     }
 
-    .stat-card { padding: 14px; }
-    .stat-value { font-size: 22px; }
-    .stat-icon { width: 34px; height: 34px; font-size: 15px; margin-bottom: 10px; }
+    .stat-card { padding: 14px 12px; border-radius: 12px; }
+    .stat-value { font-size: 20px; }
+    .stat-label { font-size: 11px; }
+    .stat-change { font-size: 10px; }
+    .stat-icon { width: 32px; height: 32px; font-size: 14px; margin-bottom: 10px; }
 
-    /* Two col becomes single */
-    .two-col { grid-template-columns: 1fr; gap: 16px; }
+    /* ── Two-col → single col ── */
+    .two-col { grid-template-columns: 1fr; gap: 14px; }
 
-    /* Form rows stack */
-    .form-row { grid-template-columns: 1fr; }
+    /* ── Section cards ── */
+    .section-card { border-radius: 12px; margin-bottom: 14px; }
+    .section-header { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
+    .section-title { font-size: 14px; }
 
-    /* Modal full screen on mobile */
+    /* ── Shift cards ── */
+    .shifts-list { padding: 12px; gap: 10px; }
+    .shift-card { padding: 13px 12px; border-radius: 10px; gap: 10px; }
+    .shift-title { font-size: 13px; }
+    .shift-icon { width: 38px; height: 38px; font-size: 18px; }
+    .shift-rate { font-size: 14px; }
+    .shift-meta { gap: 8px; font-size: 11px; }
+
+    /* ── Form rows stack ── */
+    .form-row { grid-template-columns: 1fr; gap: 0; }
+
+    /* ── Modal: sheet from bottom ── */
     .modal {
       width: 100%;
       max-width: 100%;
-      max-height: 90vh;
-      border-radius: 18px 18px 0 0;
+      max-height: 92vh;
+      border-radius: 20px 20px 0 0;
       position: fixed;
-      bottom: 0;
-      left: 0;
+      bottom: 0; left: 0;
       margin: 0;
     }
+    .modal-overlay.open { align-items: flex-end; }
 
-    .modal-overlay.open {
-      align-items: flex-end;
-    }
-
-    /* Escrow flow: scroll horizontally */
+    /* ── Escrow flow: horizontal scroll ── */
     .escrow-flow {
       overflow-x: auto;
-      padding: 20px 16px;
-      gap: 6px;
+      -webkit-overflow-scrolling: touch;
+      padding: 20px 14px;
+      gap: 4px;
+      scrollbar-width: none;
     }
-
-    .escrow-step { min-width: 80px; }
-    .escrow-circle { width: 44px; height: 44px; font-size: 18px; }
+    .escrow-flow::-webkit-scrollbar { display: none; }
+    .escrow-step { min-width: 72px; }
+    .escrow-circle { width: 44px; height: 44px; font-size: 17px; margin-bottom: 8px; }
     .escrow-label { font-size: 10px; }
     .escrow-sub { font-size: 9px; }
-    .escrow-arrow { font-size: 14px; }
+    .escrow-arrow { font-size: 12px; padding-top: 10px; }
 
-    /* Tables: scroll horizontally */
-    .pro-table-wrap {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
+    /* ── Tables: horizontal scroll ── */
+    .pro-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .pro-table { min-width: 580px; }
 
-    .pro-table { min-width: 600px; }
-
-    /* Shift card: stack rate below */
-    .shift-card { flex-wrap: wrap; }
-    .shift-rate { margin-left: auto; }
-
-    /* KPI row: 3 cols still fine, just smaller */
-    .kpi-value { font-size: 20px; }
-
-    /* Filter chips: scroll horizontally */
+    /* ── Filter bar: horizontal scroll ── */
     .filter-bar {
       flex-wrap: nowrap;
       overflow-x: auto;
       padding-bottom: 4px;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
+      gap: 8px;
     }
     .filter-bar::-webkit-scrollbar { display: none; }
-    .filter-chip { flex-shrink: 0; }
-    .search-box { min-width: 180px; flex-shrink: 0; }
+    .filter-chip { flex-shrink: 0; font-size: 12px; padding: 6px 12px; }
+    .search-box { min-width: 190px; flex-shrink: 0; }
 
-    /* Section header: allow wrap */
-    .section-header { flex-wrap: wrap; gap: 8px; }
-
-    /* Page sub hidden on very small screens */
-    .page-sub { font-size: 11px; }
-
-    /* Toast: full width on mobile */
-    .toast {
-      left: 16px; right: 16px;
-      bottom: 80px;
-      max-width: none;
-    }
-
-    /* Chart label shorter */
-    .chart-label { width: 55px; font-size: 11px; }
-
-    /* GPS two-col stacks */
+    /* ── KPI / GPS / Wallet / Chart ── */
+    .kpi-value { font-size: 19px; }
+    .kpi-label { font-size: 10px; }
+    .kpi-row { padding: 16px 12px; gap: 8px; }
     .gps-panel { padding: 16px; }
-
-    /* Wallet amount slightly smaller */
+    .wallet-balance { padding: 22px 20px; border-radius: 12px; }
     .wallet-amount { font-size: 28px; }
+    .chart-label { width: 60px; font-size: 11px; }
+    .verify-timeline { padding: 16px; }
 
-    /* Role switcher in mobile topbar */
-    .mobile-role-switcher {
-      display: flex;
-      background: rgba(255,255,255,0.1);
-      border-radius: 8px;
-      padding: 3px;
-      gap: 2px;
-    }
-
-    .mobile-role-btn {
-      padding: 5px 10px;
-      border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.6);
-      font-family: 'Sora', sans-serif;
-      font-size: 11px;
-      font-weight: 600;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .mobile-role-btn.active {
-      background: var(--teal);
-      color: white;
-    }
+    /* ── Toast: above bottom nav ── */
+    .toast { left: 14px; right: 14px; bottom: 82px; max-width: none; }
   }
 
-  @media (max-width: 400px) {
-    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  /* Very small phones */
+  @media (max-width: 380px) {
+    .stats-grid { gap: 8px; }
+    .stat-card { padding: 12px 10px; }
     .stat-value { font-size: 18px; }
-    .content { padding: 12px; }
-    .section-header { padding: 14px 16px; }
-    .shifts-list { padding: 10px; gap: 10px; }
-    .shift-card { padding: 12px; }
-    .bottom-nav-inner { gap: 0; }
-    .bnav-item { min-width: 46px; padding: 4px 6px; }
+    .content { padding: 10px 10px 16px; }
+    .bnav-item { min-width: 44px; padding: 4px 4px; font-size: 9px; }
+    .bnav-item .bnav-icon { font-size: 20px; }
   }
 </style>
 </head>
@@ -1056,13 +1089,18 @@
 
   <!-- MOBILE TOP BAR -->
   <div class="mobile-topbar">
-    <div class="mobile-logo">🏥 Health<span>Staff</span></div>
-    <div class="mobile-role-switcher">
-      <button class="mobile-role-btn active" onclick="switchRole('admin')">Admin</button>
-      <button class="mobile-role-btn" onclick="switchRole('hospital')">Hospital</button>
-      <button class="mobile-role-btn" onclick="switchRole('doctor')">Doctor</button>
+    <div class="mobile-logo">
+      <div class="logo-icon-sm">🏥</div>
+      Health<span>Staff</span>
     </div>
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  </div>
+
+  <!-- MOBILE ROLE SWITCHER BAR (below topbar) -->
+  <div class="mobile-role-bar" id="mobile-role-bar">
+    <button class="role-pill active" onclick="switchRole('admin')">🛡️ Admin</button>
+    <button class="role-pill" onclick="switchRole('hospital')">🏥 Hospital</button>
+    <button class="role-pill" onclick="switchRole('doctor')">👨‍⚕️ Doctor</button>
   </div>
 
   <!-- SIDEBAR OVERLAY -->
@@ -2139,13 +2177,13 @@
     currentRole = role;
     const cfg = roleConfig[role];
 
-    // Update desktop role buttons
-    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-    // Update mobile role buttons
-    document.querySelectorAll('.mobile-role-btn').forEach(b => b.classList.remove('active'));
-    // Mark matching buttons active
-    document.querySelectorAll('.role-btn, .mobile-role-btn').forEach(b => {
-      if (b.textContent.trim().toLowerCase() === role) b.classList.add('active');
+    // Sync desktop sidebar role buttons
+    document.querySelectorAll('.role-btn').forEach(b => {
+      b.classList.toggle('active', b.textContent.trim().toLowerCase() === role);
+    });
+    // Sync mobile role pills
+    document.querySelectorAll('.role-pill').forEach(b => {
+      b.classList.toggle('active', b.textContent.trim().toLowerCase().includes(role));
     });
 
     // Update sidebar navs
